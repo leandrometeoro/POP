@@ -100,6 +100,50 @@ def replace_userfield(root, name: str, value: str) -> int:
         parent.remove(el)
     return len(hits)
 
+def replace_userfield_cleanup(root, name: str, value: str, remove_prev_break_if_empty: bool = False) -> int:
+    """
+    Versão 'inteligente' do replace_userfield:
+    - Se value != "", substitui normalmente.
+    - Se value == "", remove o campo e:
+        * remove um <text:line-break/> imediatamente anterior, se houver, e
+        * se o parágrafo ficar vazio, remove o parágrafo.
+    """
+    path = f".//text:user-field-get[@text:name='{name}']"
+    hits = root.xpath(path, namespaces=NS)
+    changed = 0
+    for el in hits:
+        par = _find_paragraph(el)
+        parent = el.getparent()
+        idx = parent.index(el)
+
+        if value:  # substitui normalmente
+            span = ET.Element(_t("span"))
+            span.text = str(value)
+            parent.insert(idx, span)
+            parent.remove(el)
+            changed += 1
+            continue
+
+        # value vazio -> remover campo
+        parent.remove(el)
+
+        # se pedimos limpeza, remova quebra de linha imediatamente anterior
+        if remove_prev_break_if_empty and idx - 1 >= 0:
+            prev = parent[idx - 1]
+            if prev.tag == _t("line-break"):
+                parent.remove(prev)
+
+        # se o parágrafo ficou vazio, remove parágrafo inteiro
+        if par is not None:
+            has_text = (par.text or "").strip()
+            has_children = len(par) > 0
+            if not has_text and not has_children:
+                container = par.getparent()
+                if container is not None:
+                    container.remove(par)
+        changed += 1
+    return changed
+
 def _insert_lines(parent, idx, linhas):
     inserted = 0
     for i, ln in enumerate(linhas):
@@ -269,6 +313,8 @@ def _write_odt_like_template(src_zip: zipfile.ZipFile, new_content: bytes, out_p
         zout.writestr("content.xml", new_content)
     return buff.getvalue()
 
+
+
 # def render_odt(template_path: str | Path, ctx: dict) -> bytes:
 #     """Gera bytes do ODT a partir do template + contexto já normalizado."""
 #     template_path = str(template_path)
@@ -276,20 +322,7 @@ def _write_odt_like_template(src_zip: zipfile.ZipFile, new_content: bytes, out_p
 #         xml = zin.read("content.xml")
 #         root = ET.fromstring(xml)
 
-#         # --- EORG_*: substitui ou remove o parágrafo se vazio ---
-#         eorg_sup  = (ctx.get("EORG_SUP")  or "").strip()
-#         eorg_exec = (ctx.get("EORG_EXEC") or "").strip()
-#         if eorg_sup:
-#             replace_userfield(root, "EORG_SUP", eorg_sup)
-#         else:
-#             _remove_paragraph_with_userfield(root, "EORG_SUP")  # precisa existir no arquivo
-
-#         if eorg_exec:
-#             replace_userfield(root, "EORG_EXEC", eorg_exec)
-#         else:
-#             _remove_paragraph_with_userfield(root, "EORG_EXEC")
-
-#         # 1) Troca dos user fields "normais" (NÃO inclui EORG_*)
+#         # 1) Troca dos user fields (estes nomes devem existir no ODT)
 #         fields = {
 #             "POP_NOME_PROCESSO":  ctx.get("nome_processo",""),
 #             "POP_CODIGO":         ctx.get("codigo",""),
@@ -298,33 +331,34 @@ def _write_odt_like_template(src_zip: zipfile.ZipFile, new_content: bytes, out_p
 #             "POP_SETOR_EXECUTOR": ctx.get("POP_SETOR_EXECUTOR",""),
 #             "NVL_GERENCIAL":      ctx.get("NVL_GERENCIAL",""),
 #             "NVL_OPERACIONAL":    ctx.get("NVL_OPERACIONAL",""),
+#             "EORG_SUP":           ctx.get("EORG_SUP",""),
+#             "EORG_EXEC":          ctx.get("EORG_EXEC",""),
 #         }
 #         for k, v in fields.items():
 #             replace_userfield(root, k, v)
 
-#         # 2) Listas OE/IE (com "enter" entre itens NO MESMO PARÁGRAFO)
+#         # 2) Listas OE/IE (com ENTER real entre itens)
 #         oe_lines = format_lista_semicolas(ctx.get("objetivos_estrategicos", []))
+
 #         ie_raw   = ctx.get("indicadores_estrategicos", [])
 #         ie_lines = format_lista_semicolas(ie_raw) if ie_raw else ["Não há indicador sensibilizado"]
 
-#         # Preenche bookmarks: primeiro tenta o range, senão usa o simples
-#         _ = fill_bookmark_range_same_parent(root, "BM_OE_LIST", oe_lines) \
-#             or fill_bookmark_single(root, "BM_OE_LIST", oe_lines)
+#         _ = (fill_bookmark_single(root, "BM_OE_LIST", oe_lines, as_paragraphs=True)
+#              or fill_bookmark_range_same_parent(root, "BM_OE_LIST", oe_lines, as_paragraphs=True))
 
-#         _ = fill_bookmark_range_same_parent(root, "BM_IE_LIST", ie_lines) \
-#             or fill_bookmark_single(root, "BM_IE_LIST", ie_lines)
+#         _ = (fill_bookmark_single(root, "BM_IE_LIST", ie_lines, as_paragraphs=True)
+#              or fill_bookmark_range_same_parent(root, "BM_IE_LIST", ie_lines, as_paragraphs=True))
 
 #         new_content = _serialize(root)
 #         return _write_odt_like_template(zin, new_content, Path(template_path))
 
 def render_odt(template_path: str | Path, ctx: dict) -> bytes:
-    """Gera bytes do ODT a partir do template + contexto já normalizado."""
     template_path = str(template_path)
     with zipfile.ZipFile(template_path, "r") as zin:
         xml = zin.read("content.xml")
         root = ET.fromstring(xml)
 
-        # 1) Troca dos user fields (estes nomes devem existir no ODT)
+        # 1) User fields "comuns"
         fields = {
             "POP_NOME_PROCESSO":  ctx.get("nome_processo",""),
             "POP_CODIGO":         ctx.get("codigo",""),
@@ -333,15 +367,19 @@ def render_odt(template_path: str | Path, ctx: dict) -> bytes:
             "POP_SETOR_EXECUTOR": ctx.get("POP_SETOR_EXECUTOR",""),
             "NVL_GERENCIAL":      ctx.get("NVL_GERENCIAL",""),
             "NVL_OPERACIONAL":    ctx.get("NVL_OPERACIONAL",""),
-            "EORG_SUP":           ctx.get("EORG_SUP",""),
-            "EORG_EXEC":          ctx.get("EORG_EXEC",""),
+            # (EORG_* ficam fora daqui para tratamento especial)
         }
         for k, v in fields.items():
             replace_userfield(root, k, v)
 
-        # 2) Listas OE/IE (com ENTER real entre itens)
-        oe_lines = format_lista_semicolas(ctx.get("objetivos_estrategicos", []))
+        # 1.1) EORGs com limpeza de quebra quando vazios
+        eorg_sup  = ctx.get("EORG_SUP", "")
+        eorg_exec = ctx.get("EORG_EXEC", "")
+        replace_userfield_cleanup(root, "EORG_SUP",  eorg_sup,  remove_prev_break_if_empty=True)
+        replace_userfield_cleanup(root, "EORG_EXEC", eorg_exec, remove_prev_break_if_empty=True)
 
+        # 2) Listas (ENTER real entre itens)
+        oe_lines = format_lista_semicolas(ctx.get("objetivos_estrategicos", []))
         ie_raw   = ctx.get("indicadores_estrategicos", [])
         ie_lines = format_lista_semicolas(ie_raw) if ie_raw else ["Não há indicador sensibilizado"]
 
