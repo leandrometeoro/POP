@@ -1,30 +1,77 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Preenche a 1ª página do ODT manipulando XML de forma segura (lxml).
-
-- Substitui <text:user-field-get text:name="...">...</text:user-field-get>
-- Injeta listas (com ;, "; e", ".") nos bookmarks BM_OE_LIST e BM_IE_LIST
-- Calcula NVL_GERENCIAL / NVL_OPERACIONAL pelas regras combinadas
-- Regrava ODT preservando 'mimetype' como primeiro entry, sem compressão
-
-Uso:
-  python fill_first_page_xml.py \
-    --contexto output/primeira_pagina.contexto.json \
-    --odt-in modelo_POP.odt \
-    --odt-out output/primeira_pagina.odt
-"""
-import argparse, json, zipfile, io, re
+import zipfile
 from pathlib import Path
+import re
 from lxml import etree as ET
+
+def _find_paragraph(el):
+    """Sobe na árvore até achar o <text:p> que contém o elemento."""
+    cur = el
+    while cur is not None and cur.tag != _t("p"):
+        cur = cur.getparent()
+    return cur
+
+def _remove_paragraph_with_userfield(root, name: str) -> int:
+    """Remove o <text:p> que contém o user-field `name` (se existir)."""
+    path = f".//text:user-field-get[@text:name='{name}']"
+    hits = root.xpath(path, namespaces=NS)
+    n = 0
+    for el in hits:
+        par = el
+        while par is not None and par.tag != _t("p"):
+            par = par.getparent()
+        if par is not None and par.getparent() is not None:
+            par.getparent().remove(par)
+            n += 1
+    return n
+
+def _insert_lines_as_paragraphs(par: ET._Element, linhas) -> int:
+    """
+    Substitui o parágrafo `par` por N parágrafos (um por linha),
+    preservando text:style-name do parágrafo original.
+    """
+    parent = par.getparent()
+    if parent is None: 
+        return 0
+    # preserva o estilo do parágrafo original
+    style = par.get(f"{{{TEXT_NS}}}style-name")
+    idx = parent.index(par)
+    parent.remove(par)
+
+    n = 0
+    for ln in linhas:
+        p = ET.Element(_t("p"))
+        if style:
+            p.set(f"{{{TEXT_NS}}}style-name", style)
+        span = ET.Element(_t("span"))
+        span.text = ln
+        p.append(span)
+        parent.insert(idx + n, p)
+        n += 1
+    return n
+
+_VERSAO_NUM_RE = re.compile(r"(\d+)")
+
+def _versao_fem_ordinal(v) -> str:
+    s = str(v or "").strip()
+    if not s:
+        return ""
+    # se já vier com ordinal, mantém
+    if "ª" in s or "º" in s:
+        return s
+    m = _VERSAO_NUM_RE.search(s)
+    if not m:
+        return s
+    num = str(int(m.group(1)))  # remove zeros à esquerda (ex.: "01" -> "1")
+    return f"{num}ª"
 
 TEXT_NS   = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
 OFFICE_NS = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
 NS = {"text": TEXT_NS, "office": OFFICE_NS}
-
 def _t(tag): return f"{{{TEXT_NS}}}{tag}"
 
-# ---------- Regras de listas ----------
+# ---------- listas com ; "; e" "." ----------
 def format_lista_semicolas(itens):
     xs = [str(s).strip() for s in (itens or []) if s and str(s).strip()]
     n = len(xs)
@@ -39,35 +86,8 @@ def format_lista_semicolas(itens):
     linhas.append(f"{xs[-1]}.")
     return linhas
 
-# ---------- Regras NVL ----------
-_IEAPM_CODE_RE = re.compile(r"\(IEAPM-(\d+(?:\.\d+)?)\)", re.IGNORECASE)
-
-def _extrai_codigo_ieapm(rotulo_setor: str):
-    if not rotulo_setor: return None
-    m = _IEAPM_CODE_RE.search(rotulo_setor)
-    return m.group(1) if m else None
-
-def calcula_nvl_gerencial(pop_setor_superior: str) -> str:
-    cod = _extrai_codigo_ieapm(pop_setor_superior)
-    if cod and cod.split('.')[0] in {"10", "20", "30"}:
-        return "Superintendência Responsável"
-    return "Setor Responsável"
-
-def calcula_nvl_operacional(pop_setor_executor: str) -> str:
-    s = (pop_setor_executor or "").lower()
-    if "depto" in s or "depart" in s:
-        return "Departamento Responsável"
-    if "divisão" in s or "divisao" in s or "div." in s:
-        return "Divisão Responsável"
-    if "coord." in s or "coordenação" in s or "coordenacao" in s:
-        return "Coordenação Responsável"
-    if "gerência" in s or "gerencia" in s or "ger." in s:
-        return "Gerência Responsável"
-    return "Unidade responsável"
-
-# ---------- Operações XML ----------
+# ---------- XML helpers ----------
 def replace_userfield(root, name: str, value: str) -> int:
-    """Troca <text:user-field-get name=name> por <text:span>valor</text:span>."""
     if value is None: value = ""
     path = f".//text:user-field-get[@text:name='{name}']"
     hits = root.xpath(path, namespaces=NS)
@@ -81,140 +101,255 @@ def replace_userfield(root, name: str, value: str) -> int:
     return len(hits)
 
 def _insert_lines(parent, idx, linhas):
-    """Insere linhas (span + line-break) a partir do índice idx dentro de um <text:p>."""
     inserted = 0
     for i, ln in enumerate(linhas):
-        span = ET.Element(_t("span"))
-        span.text = ln
-        parent.insert(idx, span)
-        idx += 1; inserted += 1
+        span = ET.Element(_t("span")); span.text = ln
+        parent.insert(idx, span); idx += 1; inserted += 1
         if i < len(linhas) - 1:
             lb = ET.Element(_t("line-break"))
-            parent.insert(idx, lb)
-            idx += 1; inserted += 1
+            parent.insert(idx, lb); idx += 1; inserted += 1
     return inserted
 
-def fill_bookmark_single(root, name: str, linhas) -> int:
-    """Substitui <text:bookmark name=name/> por linhas com <text:line-break/>."""
+def fill_bookmark_single(root, name: str, linhas, as_paragraphs=False) -> int:
     path = f".//text:bookmark[@text:name='{name}']"
     hits = root.xpath(path, namespaces=NS)
     n = 0
     for bm in hits:
-        parent = bm.getparent()
-        idx = parent.index(bm)
-        _insert_lines(parent, idx, linhas)
-        parent.remove(bm)
+        par = _find_paragraph(bm)
+        if par is None:
+            continue
+        if as_paragraphs:
+            _insert_lines_as_paragraphs(par, linhas)
+        else:
+            idx = par.index(bm)
+            _insert_lines(par, idx, linhas)
+            par.remove(bm)
         n += 1
     return n
 
-def fill_bookmark_range_same_parent(root, name: str, linhas) -> int:
-    """
-    Quando existir <text:bookmark-start name=name/> ... <text:bookmark-end name=name/>
-    no MESMO parágrafo, apaga o conteúdo entre eles e injeta as linhas no lugar.
-    """
+# def fill_bookmark_single(root, name: str, linhas, as_paragraphs=False) -> int:
+#     """
+#     Substitui <text:bookmark name=.../>.
+#     - se as_paragraphs=True: troca o <text:p> inteiro por N parágrafos (ENTER real).
+#     - caso contrário: injeta spans + <text:line-break/> dentro do mesmo parágrafo.
+#     """
+#     path = f".//text:bookmark[@text:name='{name}']"
+#     hits = root.xpath(path, namespaces=NS)
+#     n = 0
+#     for bm in hits:
+#         # acha o <text:p> que contém o bookmark
+#         p = bm
+#         while p is not None and p.tag != _t("p"):
+#             p = p.getparent()
+#         if p is None:
+#             continue
+
+#         if as_paragraphs:
+#             container = p.getparent()
+#             if container is None:
+#                 continue
+#             p_idx = container.index(p)
+#             # preserva o estilo do parágrafo original, se houver
+#             style_attr = f"{{{TEXT_NS}}}style-name"
+#             p_style = p.get(style_attr)
+
+#             # cria um parágrafo por linha DEPOIS do original
+#             for i, ln in enumerate(linhas, start=1):
+#                 new_p = ET.Element(_t("p"))
+#                 if p_style:
+#                     new_p.set(style_attr, p_style)
+#                 span = ET.Element(_t("span"))
+#                 span.text = ln
+#                 new_p.append(span)
+#                 container.insert(p_idx + i, new_p)
+
+#             # remove o parágrafo original (que só tinha o bookmark)
+#             container.remove(p)
+#         else:
+#             # modo antigo: injeta <text:line-break/> dentro do mesmo <text:p>
+#             parent = bm.getparent()
+#             idx = parent.index(bm)
+#             _insert_lines(parent, idx, linhas)
+#             parent.remove(bm)
+
+#         n += 1
+#     return n
+
+
+def fill_bookmark_range_same_parent(root, name: str, linhas, as_paragraphs=False) -> int:
     starts = root.xpath(f".//text:bookmark-start[@text:name='{name}']", namespaces=NS)
     changed = 0
     for st in starts:
-        par = st.getparent()
-        if par is None: continue
-        i0 = par.index(st)
-        end = None
-        for j in range(i0 + 1, len(par)):
-            node = par[j]
-            if node.tag == _t("bookmark-end") and node.get(f"{{{TEXT_NS}}}name") == name:
-                end = node
-                i1 = j
-                break
-        if end is None:
+        par = _find_paragraph(st)
+        if par is None:
             continue
-        # remove conteúdo entre start e end
-        for k in range(i1 - 1, i0, -1):
-            par.remove(par[k])
-        # injeta linhas na posição do start
-        _insert_lines(par, i0, linhas)
-        # remove start e end (agora end mudou de índice, mas continua após i0)
-        par.remove(end)
-        par.remove(st)
+        # se for range, limpamos conteúdo entre start/end
+        end = par.xpath(f".//text:bookmark-end[@text:name='{name}']", namespaces=NS)
+        if as_paragraphs:
+            _insert_lines_as_paragraphs(par, linhas)
+        else:
+            # apaga tudo entre start e end (se existir) e injeta no lugar
+            i0 = par.index(st)
+            if end:
+                i1 = par.index(end[0])
+                for _ in range(i1 - i0 + 1):
+                    del par[i0]
+            else:
+                par.remove(st)
+            _insert_lines(par, i0, linhas)
         changed += 1
     return changed
 
-def write_odt_like_template(src_zip: zipfile.ZipFile, new_content: bytes, out_path: Path):
-    """Regrava ODT preservando 'mimetype' como primeiro (STORED) e demais arquivos."""
-    names = src_zip.namelist()
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(out_path, "w") as zout:
-        # 1) mimetype primeiro, STORED
-        if "mimetype" in names:
-            data = src_zip.read("mimetype")
-            info = zipfile.ZipInfo("mimetype")
-            info.compress_type = zipfile.ZIP_STORED
-            zout.writestr(info, data)
-        # 2) demais arquivos
-        for name in names:
-            if name == "mimetype":
+# def fill_bookmark_range_same_parent(root, name: str, linhas, as_paragraphs=False) -> int:
+#     """
+#     Quando há <text:bookmark-start name=.../> ... <text:bookmark-end name=.../> no MESMO <text:p>.
+#     - se as_paragraphs=True: substitui o <text:p> inteiro por N parágrafos (ENTER real).
+#     - senão: apaga o conteúdo entre start/end e insere spans + <text:line-break/>.
+#     """
+#     starts = root.xpath(f".//text:bookmark-start[@text:name='{name}']", namespaces=NS)
+#     changed = 0
+#     for st in starts:
+#         # garante que o end correspondente está no mesmo <text:p>
+#         p = st
+#         while p is not None and p.tag != _t("p"):
+#             p = p.getparent()
+#         if p is None:
+#             continue
+#         ends = [el for el in p.findall(f".//{{{TEXT_NS}}}bookmark-end") if el.get(f"{{{TEXT_NS}}}name") == name]
+#         if not ends:
+#             continue
+#         en = ends[0]
+
+#         if as_paragraphs:
+#             container = p.getparent()
+#             if container is None:
+#                 continue
+#             p_idx = container.index(p)
+#             style_attr = f"{{{TEXT_NS}}}style-name"
+#             p_style = p.get(style_attr)
+
+#             for i, ln in enumerate(linhas, start=1):
+#                 new_p = ET.Element(_t("p"))
+#                 if p_style:
+#                     new_p.set(style_attr, p_style)
+#                 span = ET.Element(_t("span"))
+#                 span.text = ln
+#                 new_p.append(span)
+#                 container.insert(p_idx + i, new_p)
+
+#             container.remove(p)
+#         else:
+#             # remove conteúdo entre start e end dentro do mesmo <text:p> e insere line-breaks
+#             i0 = p.index(st)
+#             i1 = p.index(en)
+#             for i in range(i1, i0 - 1, -1):
+#                 p.remove(p[i])
+#             _insert_lines(p, i0, linhas)
+
+#         changed += 1
+#     return changed
+
+def _serialize(root) -> bytes:
+    return ET.tostring(root, xml_declaration=True, encoding="UTF-8")
+
+def _write_odt_like_template(src_zip: zipfile.ZipFile, new_content: bytes, out_path: Path) -> bytes:
+    # retorna bytes do ODT final
+    mem = Path(out_path).with_suffix(".tmp.bin")  # apenas para nome; gravaremos em memória via writestr
+    from io import BytesIO
+    buff = BytesIO()
+    with zipfile.ZipFile(buff, "w") as zout:
+        # exige mimetype como primeira entrada, STORED
+        mt = src_zip.read("mimetype") if "mimetype" in src_zip.namelist() else b"application/vnd.oasis.opendocument.text"
+        zi = zipfile.ZipInfo("mimetype"); zi.compress_type = zipfile.ZIP_STORED
+        zout.writestr(zi, mt)
+        for name in src_zip.namelist():
+            if name in {"mimetype", "content.xml"}:
                 continue
-            if name == "content.xml":
-                zout.writestr(name, new_content, compress_type=zipfile.ZIP_DEFLATED)
-            else:
-                zout.writestr(name, src_zip.read(name), compress_type=zipfile.ZIP_DEFLATED)
+            zout.writestr(name, src_zip.read(name))
+        zout.writestr("content.xml", new_content)
+    return buff.getvalue()
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--contexto", required=True)
-    ap.add_argument("--odt-in", required=True)
-    ap.add_argument("--odt-out", required=True)
-    args = ap.parse_args()
+# def render_odt(template_path: str | Path, ctx: dict) -> bytes:
+#     """Gera bytes do ODT a partir do template + contexto já normalizado."""
+#     template_path = str(template_path)
+#     with zipfile.ZipFile(template_path, "r") as zin:
+#         xml = zin.read("content.xml")
+#         root = ET.fromstring(xml)
 
-    ctx = json.load(open(args.contexto, "r", encoding="utf-8"))
+#         # --- EORG_*: substitui ou remove o parágrafo se vazio ---
+#         eorg_sup  = (ctx.get("EORG_SUP")  or "").strip()
+#         eorg_exec = (ctx.get("EORG_EXEC") or "").strip()
+#         if eorg_sup:
+#             replace_userfield(root, "EORG_SUP", eorg_sup)
+#         else:
+#             _remove_paragraph_with_userfield(root, "EORG_SUP")  # precisa existir no arquivo
 
-    # Dados base esperados (ajuste as chaves se necessário)
-    nome_processo  = ctx.get("nome_processo", "")
-    codigo         = ctx.get("codigo", "")
-    versao         = str(ctx.get("versao", ""))
-    setor_superior = ctx.get("setor_superior", "")
-    setor_executor = ctx.get("setor_executor", "")
-    objetivos      = ctx.get("objetivos_estrategicos", [])
-    indicadores    = ctx.get("indicadores_estrategicos", [])
+#         if eorg_exec:
+#             replace_userfield(root, "EORG_EXEC", eorg_exec)
+#         else:
+#             _remove_paragraph_with_userfield(root, "EORG_EXEC")
 
-    nvl_g = calcula_nvl_gerencial(setor_superior)
-    nvl_o = calcula_nvl_operacional(setor_executor)
+#         # 1) Troca dos user fields "normais" (NÃO inclui EORG_*)
+#         fields = {
+#             "POP_NOME_PROCESSO":  ctx.get("nome_processo",""),
+#             "POP_CODIGO":         ctx.get("codigo",""),
+#             "POP_VERSAO":         _versao_fem_ordinal(ctx.get("versao","")),
+#             "POP_SETOR_SUPERIOR": ctx.get("POP_SETOR_SUPERIOR",""),
+#             "POP_SETOR_EXECUTOR": ctx.get("POP_SETOR_EXECUTOR",""),
+#             "NVL_GERENCIAL":      ctx.get("NVL_GERENCIAL",""),
+#             "NVL_OPERACIONAL":    ctx.get("NVL_OPERACIONAL",""),
+#         }
+#         for k, v in fields.items():
+#             replace_userfield(root, k, v)
 
-    oe_lines = format_lista_semicolas(objetivos)
-    ie_lines = format_lista_semicolas(indicadores)
+#         # 2) Listas OE/IE (com "enter" entre itens NO MESMO PARÁGRAFO)
+#         oe_lines = format_lista_semicolas(ctx.get("objetivos_estrategicos", []))
+#         ie_raw   = ctx.get("indicadores_estrategicos", [])
+#         ie_lines = format_lista_semicolas(ie_raw) if ie_raw else ["Não há indicador sensibilizado"]
 
-    with zipfile.ZipFile(args.odt_in, "r") as zin:
-        content = zin.read("content.xml")
-        parser = ET.XMLParser(remove_blank_text=False, recover=False)
-        root = ET.fromstring(content, parser)
+#         # Preenche bookmarks: primeiro tenta o range, senão usa o simples
+#         _ = fill_bookmark_range_same_parent(root, "BM_OE_LIST", oe_lines) \
+#             or fill_bookmark_single(root, "BM_OE_LIST", oe_lines)
 
-        # Troca user fields
+#         _ = fill_bookmark_range_same_parent(root, "BM_IE_LIST", ie_lines) \
+#             or fill_bookmark_single(root, "BM_IE_LIST", ie_lines)
+
+#         new_content = _serialize(root)
+#         return _write_odt_like_template(zin, new_content, Path(template_path))
+
+def render_odt(template_path: str | Path, ctx: dict) -> bytes:
+    """Gera bytes do ODT a partir do template + contexto já normalizado."""
+    template_path = str(template_path)
+    with zipfile.ZipFile(template_path, "r") as zin:
+        xml = zin.read("content.xml")
+        root = ET.fromstring(xml)
+
+        # 1) Troca dos user fields (estes nomes devem existir no ODT)
         fields = {
-            "POP_NOME_PROCESSO": nome_processo,
-            "POP_CODIGO": codigo,
-            "POP_VERSAO": versao,
-            "POP_SETOR_SUPERIOR": setor_superior,
-            "POP_SETOR_EXECUTOR": setor_executor,
-            "NVL_GERENCIAL": nvl_g,
-            "NVL_OPERACIONAL": nvl_o,
+            "POP_NOME_PROCESSO":  ctx.get("nome_processo",""),
+            "POP_CODIGO":         ctx.get("codigo",""),
+            "POP_VERSAO":         _versao_fem_ordinal(ctx.get("versao","")),
+            "POP_SETOR_SUPERIOR": ctx.get("POP_SETOR_SUPERIOR",""),
+            "POP_SETOR_EXECUTOR": ctx.get("POP_SETOR_EXECUTOR",""),
+            "NVL_GERENCIAL":      ctx.get("NVL_GERENCIAL",""),
+            "NVL_OPERACIONAL":    ctx.get("NVL_OPERACIONAL",""),
+            "EORG_SUP":           ctx.get("EORG_SUP",""),
+            "EORG_EXEC":          ctx.get("EORG_EXEC",""),
         }
-        n_user = 0
         for k, v in fields.items():
-            n_user += replace_userfield(root, k, v)
+            replace_userfield(root, k, v)
 
-        # Preenche bookmarks (single e range no mesmo parágrafo)
-        n_bm_oe = fill_bookmark_single(root, "BM_OE_LIST", oe_lines)
-        n_bm_ie = fill_bookmark_single(root, "BM_IE_LIST", ie_lines)
-        # fallback: se existirem start/end no mesmo <text:p>
-        if n_bm_oe == 0:
-            n_bm_oe = fill_bookmark_range_same_parent(root, "BM_OE_LIST", oe_lines)
-        if n_bm_ie == 0:
-            n_bm_ie = fill_bookmark_range_same_parent(root, "BM_IE_LIST", ie_lines)
+        # 2) Listas OE/IE (com ENTER real entre itens)
+        oe_lines = format_lista_semicolas(ctx.get("objetivos_estrategicos", []))
 
-        new_xml = ET.tostring(root, encoding="UTF-8", xml_declaration=True)
+        ie_raw   = ctx.get("indicadores_estrategicos", [])
+        ie_lines = format_lista_semicolas(ie_raw) if ie_raw else ["Não há indicador sensibilizado"]
 
-        write_odt_like_template(zin, new_xml, Path(args.odt_out))
+        _ = (fill_bookmark_single(root, "BM_OE_LIST", oe_lines, as_paragraphs=True)
+             or fill_bookmark_range_same_parent(root, "BM_OE_LIST", oe_lines, as_paragraphs=True))
 
-    print(f"OK: {args.odt_out} | user-fields: {n_user} | bookmark_OE: {n_bm_oe} | bookmark_IE: {n_bm_ie}")
+        _ = (fill_bookmark_single(root, "BM_IE_LIST", ie_lines, as_paragraphs=True)
+             or fill_bookmark_range_same_parent(root, "BM_IE_LIST", ie_lines, as_paragraphs=True))
 
-if __name__ == "__main__":
-    main()
+        new_content = _serialize(root)
+        return _write_odt_like_template(zin, new_content, Path(template_path))
