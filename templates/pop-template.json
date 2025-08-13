@@ -1,0 +1,614 @@
+[
+  {
+    "$schema": "https://unpkg.com/@camunda/zeebe-element-templates-json-schema/resources/schema.json",
+    "name": "Procedimento Operacional Padrão Final(POP)",
+    "id": "com.mycompany.pop-template.structured-final2",
+    "description": "Template estruturado e completo que espelha as seções do documento POP.",
+    "appliesTo": [ "bpmn:Process", "bpmn:Participant" ],
+    "properties": [
+       {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_cabecalho__" },
+        "disabled": true,
+        "choices": [
+          { "name": "0. CABEÇALHO", "value": "header_cabecalho" }
+        ],
+        "value": "header_cabecalho",
+        "group": "cabecalho"
+      },
+      {
+        "label": "Nome do Processo", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:nomeProcesso" },
+        "description": "Insira aqui o nome do processo organizacional", "group": "cabecalho"
+      }, 
+     {
+        "label": "Objetivo Estratégico (Contribuição Predominante)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:objetivoEstrategico1" },
+        "description": "Conforme o Manual de Gestão, todo processo contribui para a missão e deve ter seu alinhamento estratégico predominante registrado no POP.",
+        "choices": [
+          { "name": "Selecione o objetivo ao qual o processo mais contribui.", "value": "" },
+          { "name": "OE 01 - Atender a projetos afetos às Ciências do Mar de interesse nacional", "value": "oe_01" },
+          { "name": "OE 02 - Desenvolver conhecimento de CT&I nas áreas de atuação do Instituto", "value": "oe_02" },
+          { "name": "OE 03 - Manter e atualizar laboratórios e equipamentos do Instituto", "value": "oe_03" },
+          { "name": "OE 04 - Manter a massa crítica de conhecimento em Ciências do Mar", "value": "oe_04" },
+          { "name": "OE 05 - Manter o pessoal qualificado para a operação dos equipamentos e ferramentas de pesquisa", "value": "oe_05" },
+          { "name": "OE 06 - Manter e ampliar a rede de relacionamento do Instituto", "value": "oe_06" },
+          { "name": "OE 07 - Alcançar a excelência administrativa", "value": "oe_07" },
+          { "name": "OE 08 - Atualizar o mapeamento de processos", "value": "oe_08" }
+        ],
+        "group": "estrategico"
+      },
+      {
+        "label": "Objetivo Estratégico 2 (se aplicável)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:objetivoEstrategico2" },
+        "description": "Utilize este campo se o processo, além da sua contribuição principal, também se alinhar de forma relevante a um segundo objetivo estratégico.",
+        "choices": [
+          { "name": "Selecione um objetivo adicional, se aplicável...", "value": "" },
+          { "name": "OE 01 - Atender a projetos afetos às Ciências do Mar de interesse nacional", "value": "oe_01" },
+          { "name": "OE 02 - Desenvolver conhecimento de CT&I nas áreas de atuação do Instituto", "value": "oe_02" },
+          { "name": "OE 03 - Manter e atualizar laboratórios e equipamentos do Instituto", "value": "oe_03" },
+          { "name": "OE 04 - Manter a massa crítica de conhecimento em Ciências do Mar", "value": "oe_04" },
+          { "name": "OE 05 - Manter o pessoal qualificado para a operação dos equipamentos e ferramentas de pesquisa", "value": "oe_05" },
+          { "name": "OE 06 - Manter e ampliar a rede de relacionamento do Instituto", "value": "oe_06" },
+          { "name": "OE 07 - Alcançar a excelência administrativa", "value": "oe_07" },
+          { "name": "OE 08 - Atualizar o mapeamento de processos", "value": "oe_08" }
+        ],
+        "value": "",
+        "group": "estrategico"
+      },
+      {
+        "label": "Objetivo Estratégico 3 (se aplicável)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:objetivoEstrategico3" },
+        "description": "Caso um segundo objetivo já tenha sido selecionado, utilize este campo para registrar um terceiro alinhamento relevante.",
+        "choices": [
+          { "name": "Selecione um objetivo adicional, se aplicável...", "value": "" },
+          { "name": "OE 01 - Atender a projetos afetos às Ciências do Mar de interesse nacional", "value": "oe_01" },
+          { "name": "OE 02 - Desenvolver conhecimento de CT&I nas áreas de atuação do Instituto", "value": "oe_02" },
+          { "name": "OE 03 - Manter e atualizar laboratórios e equipamentos do Instituto", "value": "oe_03" },
+          { "name": "OE 04 - Manter a massa crítica de conhecimento em Ciências do Mar", "value": "oe_04" },
+          { "name": "OE 05 - Manter o pessoal qualificado para a operação dos equipamentos e ferramentas de pesquisa", "value": "oe_05" },
+          { "name": "OE 06 - Manter e ampliar a rede de relacionamento do Instituto", "value": "oe_06" },
+          { "name": "OE 07 - Alcançar a excelência administrativa", "value": "oe_07" },
+          { "name": "OE 08 - Atualizar o mapeamento de processos", "value": "oe_08" }
+        ],
+        "value": "",
+        "group": "estrategico"
+      },
+      {
+        "label": "Indicador Estratégico 1 (se houver alinhamento)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:indicadorEstrategico1" },
+        "choices": [
+          { "name": "Selecione um indicador, se aplicável ao processo...", "value": "" },
+          { "name": "Controle físico-financeiro dos projetos (Índice de Valor Agregado)", "value": "controle_fisico_financeiro" },
+          { "name": "Percentual de recursos humanos e infraestrutura empregados em PD&I", "value": "percentual_rh_infra" },
+          { "name": "Percentual de linhas de pesquisa em andamento", "value": "percentual_linhas_pesquisa" },
+          { "name": "Número de artigos publicados", "value": "numero_artigos" },
+          { "name": "Percentual de equipamentos e ferramentas em condições de pleno emprego", "value": "percentual_equipamentos_emprego" },
+          { "name": "Conformidade para certificações", "value": "conformidade_certificacoes" },
+          { "name": "Número de pesquisadores em condição de registro ou elevação de nível", "value": "numero_pesquisadores_nivel" },
+          { "name": "Nível de qualificação dos PPG do Instituto", "value": "nivel_qualificacao_ppg" },
+          { "name": "Inventário de equipamentos e ferramentas de pesquisa", "value": "inventario_equipamentos" },
+          { "name": "Percentual da infraestrutura de pesquisa em condições de pleno emprego", "value": "percentual_infra_pleno_emprego" },
+          { "name": "Número de atividades divulgadas", "value": "numero_atividades_divulgadas" },
+          { "name": "Número de participações em eventos", "value": "numero_participacoes_eventos" },
+          { "name": "Índice de satisfação dos clientes", "value": "indice_satisfacao_clientes" },
+          { "name": "Percentual de listas em conformidade", "value": "percentual_listas_conformidade" },
+          { "name": "Índice de OI atualizadas", "value": "indice_oi_atualizadas" },
+          { "name": "Percentual dos processos analisados", "value": "percentual_processos_analisados" }
+        ],
+        "description": "Conforme o Manual de Gestão, alguns processos (especialmente os prioritários) terão alinhamento e sensibilizarão algum indicador do PEO.",
+        "group": "estrategico"
+      },
+      {
+        "label": "Indicador Estratégico 2 (se houver alinhamento)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:indicadorEstrategico2" },
+        "choices": [
+          { "name": "Selecione um indicador adicional, se aplicável...", "value": "" },
+          { "name": "Controle físico-financeiro dos projetos (Índice de Valor Agregado)", "value": "controle_fisico_financeiro" },
+          { "name": "Percentual de recursos humanos e infraestrutura empregados em PD&I", "value": "percentual_rh_infra" },
+          { "name": "Percentual de linhas de pesquisa em andamento", "value": "percentual_linhas_pesquisa" },
+          { "name": "Número de artigos publicados", "value": "numero_artigos" },
+          { "name": "Percentual de equipamentos e ferramentas em condições de pleno emprego", "value": "percentual_equipamentos_emprego" },
+          { "name": "Conformidade para certificações", "value": "conformidade_certificacoes" },
+          { "name": "Número de pesquisadores em condição de registro ou elevação de nível", "value": "numero_pesquisadores_nivel" },
+          { "name": "Nível de qualificação dos PPG do Instituto", "value": "nivel_qualificacao_ppg" },
+          { "name": "Inventário de equipamentos e ferramentas de pesquisa", "value": "inventario_equipamentos" },
+          { "name": "Percentual da infraestrutura de pesquisa em condições de pleno emprego", "value": "percentual_infra_pleno_emprego" },
+          { "name": "Número de atividades divulgadas", "value": "numero_atividades_divulgadas" },
+          { "name": "Número de participações em eventos", "value": "numero_participacoes_eventos" },
+          { "name": "Índice de satisfação dos clientes", "value": "indice_satisfacao_clientes" },
+          { "name": "Percentual de listas em conformidade", "value": "percentual_listas_conformidade" },
+          { "name": "Índice de OI atualizadas", "value": "indice_oi_atualizadas" },
+          { "name": "Percentual dos processos analisados", "value": "percentual_processos_analisados" }
+        ],
+        "description": "Disponível para processos que se alinham e sensibilizam mais do que um indicador estratégico.",
+        "group": "estrategico"
+      },
+      {
+        "label": "Indicador Estratégico 3 (se houver alinhamento)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:indicadorEstrategico3" },
+        "choices": [
+          { "name": "Selecione um indicador adicional, se aplicável...", "value": "" },
+          { "name": "Controle físico-financeiro dos projetos (Índice de Valor Agregado)", "value": "controle_fisico_financeiro" },
+          { "name": "Percentual de recursos humanos e infraestrutura empregados em PD&I", "value": "percentual_rh_infra" },
+          { "name": "Percentual de linhas de pesquisa em andamento", "value": "percentual_linhas_pesquisa" },
+          { "name": "Número de artigos publicados", "value": "numero_artigos" },
+          { "name": "Percentual de equipamentos e ferramentas em condições de pleno emprego", "value": "percentual_equipamentos_emprego" },
+          { "name": "Conformidade para certificações", "value": "conformidade_certificacoes" },
+          { "name": "Número de pesquisadores em condição de registro ou elevação de nível", "value": "numero_pesquisadores_nivel" },
+          { "name": "Nível de qualificação dos PPG do Instituto", "value": "nivel_qualificacao_ppg" },
+          { "name": "Inventário de equipamentos e ferramentas de pesquisa", "value": "inventario_equipamentos" },
+          { "name": "Percentual da infraestrutura de pesquisa em condições de pleno emprego", "value": "percentual_infra_pleno_emprego" },
+          { "name": "Número de atividades divulgadas", "value": "numero_atividades_divulgadas" },
+          { "name": "Número de participações em eventos", "value": "numero_participacoes_eventos" },
+          { "name": "Índice de satisfação dos clientes", "value": "indice_satisfacao_clientes" },
+          { "name": "Percentual de listas em conformidade", "value": "percentual_listas_conformidade" },
+          { "name": "Índice de OI atualizadas", "value": "indice_oi_atualizadas" },
+          { "name": "Percentual dos processos analisados", "value": "percentual_processos_analisados" }
+        ],
+        "description": "Disponível para processos que se alinham e sensibilizam mais do que um indicador estratégico.",
+        "group": "estrategico"
+      },
+      {
+        "label": "Código",
+        "type": "String",
+        "binding": { "type": "zeebe:property", "name": "pop:codigo" },
+        "description": "Formato: SETOR-SEQUENCIAL (onde o sequencial tem dois dígitos, ex: 10-01, 312-02).\nSetor: É o número da Assessoria, Superintendência, Departamento ou Divisão responsável.\nRegra Chave: O código é sempre vinculado, no máximo, ao nível de Divisão. Processos de uma Seção (ex: 3121) herdam o código de sua Divisão (312) e recebem o próximo sequencial livre.",
+        "group": "cabecalho"
+      },
+      {
+        "label": "Setor Responsável (Nível Superior)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:superintendenciaResponsavel" },
+        "choices": [
+          { "name": "Selecione...", "value": "" },
+          { "name": "Vice-Direção (IEAPM-02)", "value": "ieapm_02" },
+          { "name": "Escritório de Projetos (IEAPM-04)", "value": "ieapm_04" },
+          { "name": "Assessoria de Justiça e Disciplina (IEAPM-05)", "value": "ieapm_05" },
+          { "name": "Assessoria de Relações Institucionais (IEAPM-06)", "value": "ieapm_06" },
+          { "name": "Assessoria de Inteligência (IEAPM-07)", "value": "ieapm_07" },
+          { "name": "Assessoria de Gestão Estratégica (IEAPM-08)", "value": "ieapm_08" },
+          { "name": "Superintendência de Pesquisas (IEAPM-10)", "value": "ieapm_10" },
+          { "name": "Superintendência de Pós-graduação (IEAPM-20)", "value": "ieapm_20" },
+          { "name": "Superintendência de Administração (IEAPM-30)", "value": "ieapm_30" }
+        ],
+        "group": "cabecalho"
+      },
+      {
+        "label": "Setor Executor (Nível Tático)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:departamentoResponsavel" },
+        "choices": [
+          { "name": "Selecione...", "value": "" },
+          { "name": "Gabinete (IEAPM-03)", "value": "ieapm_03" },
+          { "name": "(Sub. ao IEAPM-02) Serviço de Secretaria e Com. (IEAPM-02.1)", "value": "ieapm_02_1" },
+          { "name": "(Sub. ao IEAPM-10) Depto. de Oceanografia (IEAPM-11)", "value": "ieapm_11" },
+          { "name": "(Sub. ao IEAPM-10) Depto. de Biotecnologia Marinha (IEAPM-12)", "value": "ieapm_12" },
+          { "name": "(Sub. ao IEAPM-10) Depto. de Acústica Submarina (IEAPM-13)", "value": "ieapm_13" },
+          { "name": "(Sub. ao IEAPM-20) Gerência de Apoio Adm. (IEAPM-201)", "value": "ieapm_201" },
+          { "name": "(Sub. ao IEAPM-20) Coord. Curso Biotecnologia Marinha (IEAPM-21)", "value": "ieapm_21" },
+          { "name": "(Sub. ao IEAPM-20) Coord. Curso Acústica Submarina (IEAPM-22)", "value": "ieapm_22" },
+          { "name": "(Sub. ao IEAPM-20) Secretaria Acadêmica (IEAPM-23)", "value": "ieapm_23" },
+          { "name": "(Sub. ao IEAPM-20) Biblioteca (IEAPM-24)", "value": "ieapm_24" },
+          { "name": "(Sub. ao IEAPM-30) Gerência de Meio Ambiente (IEAPM-30.1)", "value": "ieapm_30_1" },
+          { "name": "(Sub. ao IEAPM-30) Gerência de Esportes (IEAPM-30.2)", "value": "ieapm_30_2" },
+          { "name": "(Sub. ao IEAPM-30) Depto. de Administração (IEAPM-31)", "value": "ieapm_31" },
+          { "name": "(Sub. ao IEAPM-30) Depto. de Intendência (IEAPM-32)", "value": "ieapm_32" },
+          { "name": "(Sub. ao IEAPM-30) Depto. de Tecnologia da Informação (IEAPM-33)", "value": "ieapm_33" },
+          { "name": "Não Aplicável / --X--", "value": "na" }
+        ],
+        "group": "cabecalho"
+      },
+       {
+        "label": "Versão",
+        "type": "String",
+        "value": "1",
+        "binding": { "type": "zeebe:property", "name": "pop:versao" },
+        "description": "Insira o número da versão. A primeira elaboração do documento é a versão '1'. Para revisões, altere para 2, 3, etc., e detalhe a mudança na seção 'IX. CONTROLE DAS ALTERAÇÕES'.",
+        "group": "cabecalho"
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_palavrasChave__" },
+        "description": "Insira nos campos a seguir os principais termos relacionados com o processo.",
+        "disabled": true,
+        "choices": [
+          { "name": "I. PALAVRAS-CHAVE:", "value": "header_palavrasChave" }
+        ],
+        "value": "header_palavrasChave",
+        "group": "palavrasChave"
+      },
+      {
+        "label": "Palavra-Chave 1",
+        "type": "String",
+        "binding": { "type": "zeebe:property", "name": "pop:palavraChave1" },
+        "group": "palavrasChave"
+      },
+      {
+        "label": "Palavra-Chave 2",
+        "type": "String",
+        "binding": { "type": "zeebe:property", "name": "pop:palavraChave2" },
+        "group": "palavrasChave"
+      },
+      {
+        "label": "Palavra-Chave 3",
+        "type": "String",
+        "binding": { "type": "zeebe:property", "name": "pop:palavraChave3" },
+        "group": "palavrasChave"
+      },
+      {
+        "label": "Palavras-Chave Adicionais",
+        "type": "String",
+        "binding": { "type": "zeebe:property", "name": "pop:palavrasChaveAdicionais" },
+        "description": "Se precisar de mais de 3, adicione aqui separando por //",
+        "group": "palavrasChave"
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_dicionario__" },
+        "description": "Para cada linha abaixo, preencha o Termo/Sigla na primeira caixa e o seu respectivo Significado na segunda.",
+        "disabled": true,
+        "choices": [
+          { "name": "II. DICIONÁRIO DE TERMOS E SIGLAS", "value": "header_dicionario" }
+        ],
+        "value": "header_dicionario",
+        "group": "dicionario"
+      },
+      { "label": "Termo/Sigla 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario1_termo" }, "group": "dicionario" },
+      { "label": "Significado 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario1_significado" }, "group": "dicionario" },
+      { "label": "Termo/Sigla 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario2_termo" }, "group": "dicionario" },
+      { "label": "Significado 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario2_significado" }, "group": "dicionario" },
+      { "label": "Termo/Sigla 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario3_termo" }, "group": "dicionario" },
+      { "label": "Significado 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:dicionario3_significado" }, "group": "dicionario" },
+      { 
+        "label": "Termos/Siglas Adicionais",
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:dicionarioAdicionais_termos" }, 
+        "description": "Se precisar de mais, liste apenas os TERMOS/SIGLAS aqui, separados por //", 
+        "group": "dicionario" 
+      },
+      { 
+        "label": "Significados Adicionais",
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:dicionarioAdicionais_significados" }, 
+        "description": "Liste os SIGNIFICADOS correspondentes na mesma ordem, separados por //", 
+        "group": "dicionario" 
+      },
+
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_descricao__" },
+        "description": "Para gerar o texto desta seção: 1. Clique em um elemento no fluxograma (ex: uma Tarefa/retângulo ou Gateway/losango). 2. No painel de propriedades à direita, encontre o campo 'Documentation'. 3. Escreva ali a descrição daquela atividade ou decisão. O Sistema POP juntará todas as suas anotações.",
+        "disabled": true,
+        "choices": [
+          { "name": "III. DESCRIÇÃO DO PROCESSO (Automático)", "value": "header_descricao" }
+        ],
+        "value": "header_descricao",
+        "group": "descricao"
+      },
+
+       {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_referencias__" },
+        "description": "Relacione as referências utilizadas para elaboração ou que complementem o entendimento do processo (portarias, leis, manuais, etc.).",
+        "disabled": true,
+        "choices": [
+          { "name": "IV. DOCUMENTOS DE REFERÊNCIA", "value": "header_referencias" }
+        ],
+        "value": "header_referencias",
+        "group": "referencias"
+      },
+      { "label": "Referência 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia1_ref" }, "group": "referencias" },
+      { "label": "Descrição 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia1_desc" }, "group": "referencias" },
+      { "label": "Referência 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia2_ref" }, "group": "referencias" },
+      { "label": "Descrição 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia2_desc" }, "group": "referencias" },
+      { "label": "Referência 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia3_ref" }, "group": "referencias" },
+      { "label": "Descrição 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:referencia3_desc" }, "group": "referencias" },
+      { 
+        "label": "Referências Adicionais", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:referenciasAdicionais_refs" }, 
+        "description": "Se precisar de mais, liste as REFERÊNCIAS aqui, separadas por //", 
+        "group": "referencias" 
+      },
+
+      { 
+        "label": "Descrições Adicionais", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:referenciasAdicionais_descs" }, 
+        "description": "Liste as DESCRIÇÕES correspondentes na mesma ordem, separadas por //", 
+        "group": "referencias" 
+      },
+
+     {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_sistemas__" },
+        "description": "Identifique os sistemas informatizados e formulários que são utilizados durante a execução do processo.",
+        "disabled": true,
+        "choices": [
+          { "name": "V. SISTEMAS E FORMULÁRIOS UTILIZADOS NO PROCESSO", "value": "header_sistemas" }
+        ],
+        "value": "header_sistemas",
+        "group": "sistemas"
+      },
+      { "label": "Sistema/Formulário 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:sistema1" }, "group": "sistemas" },
+      { "label": "Sistema/Formulário 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:sistema2" }, "group": "sistemas" },
+      { "label": "Sistema/Formulário 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:sistema3" }, "group": "sistemas" },
+      { 
+        "label": "Sistemas/Formulários Adicionais", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:sistemasAdicionais" }, 
+        "description": "Se precisar de mais de 3, liste aqui separados por //", 
+        "group": "sistemas" 
+      },
+
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_monitoramento__" },
+        "description": "Aponte (se houver) os indicadores que medem a execução adequada e efetiva deste processo. Diferente dos Indicadores Estratégicos (ligados ao PEO), estes são indicadores operacionais, inerentes ao próprio processo. \nExemplo:\nIndicador: 'Tempo médio de atendimento'\nExplicação: 'Soma do tempo de todos atendimentos / Nº total de atendimentos'.",
+        "disabled": true,
+        "choices": [
+          { "name": "VI. INDICADORES DE MONITORAMENTO", "value": "header_monitoramento" }
+        ],
+        "value": "header_monitoramento",
+        "group": "monitoramento"
+      },
+      { 
+        "label": "Indicador 1 (se houver)", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:indicadorMon1_nome" }, 
+        "value": "Não há.",
+        "group": "monitoramento" 
+      },
+      { "label": "Explicação/Descrição do Indicador 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:indicadorMon1_desc" }, "group": "monitoramento" },
+      { "label": "Indicador 2 (se houver)", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:indicadorMon2_nome" }, "group": "monitoramento" },
+      { "label": "Explicação/Descrição do Indicador 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:indicadorMon2_desc" }, "group": "monitoramento" },
+      { "label": "Indicador 3 (se houver)", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:indicadorMon3_nome" }, "group": "monitoramento" },
+      { "label": "Explicação/Descrição do Indicador 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:indicadorMon3_desc" }, "group": "monitoramento" },
+      { 
+        "label": "Indicadores Adicionais (se houver)", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:indicadoresMonAdicionais_nomes" }, 
+        "description": "Se precisar de mais, liste os NOMES dos indicadores aqui, separados por //", 
+        "group": "monitoramento" 
+      },
+      { 
+        "label": "Explicações/Descrições Adicionais (se houver)", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:indicadoresMonAdicionais_descs" }, 
+        "description": "Liste as EXPLICAÇÕES correspondentes na mesma ordem, separadas por //", 
+        "group": "monitoramento" 
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_observacoes__" },
+        "description": "Insira aqui informações relevantes para complementar o entendimento das atividades desenhadas no fluxograma ou outras notas importantes sobre o processo.",
+        "disabled": true,
+        "choices": [
+          { "name": "VII. OBSERVAÇÕES SOBRE ATIVIDADES DO PROCESSO", "value": "header_observacoes" }
+        ],
+        "value": "header_observacoes",
+        "group": "observacoes"
+      },
+      { "label": "Observação 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:observacao1" }, "group": "observacoes" },
+      { "label": "Observação 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:observacao2" }, "group": "observacoes" },
+      { "label": "Observação 3", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:observacao3" }, "group": "observacoes" },
+      { 
+        "label": "Observações Adicionais", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:observacoesAdicionais" }, 
+        "description": "Se precisar de mais de 3, liste aqui as observações adicionais, separadas por //", 
+        "group": "observacoes" 
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_fluxograma__" },
+        "description": "Esta seção será preenchida automaticamente pelo Sistema POP. Sua tarefa é exportar este fluxograma como uma imagem (formato recomendado: SVG) e fazer o upload dela junto com o arquivo .bpmn.",
+        "disabled": true,
+        "choices": [
+          { "name": "VIII. FLUXOGRAMA", "value": "header_fluxograma" }
+        ],
+        "value": "header_fluxograma",
+        "group": "fluxograma"
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_alteracoes__" },
+        "description": "Controle as versões do POP nesta tabela. Conforme o manual, registre apenas as alterações relevantes.",
+        "disabled": true,
+        "choices": [
+          { "name": "IX. CONTROLE DAS ALTERAÇÕES", "value": "header_alteracoes" }
+        ],
+        "value": "header_alteracoes",
+        "group": "alteracoes"
+      },
+      { 
+        "label": "Nº da Versão", 
+        "type": "String", 
+        "value":"1ª", 
+        "binding": { "type": "zeebe:property", "name": "pop:alteracao_versao" },
+        "description": "Valor padrão para a primeira versão. Edite para '2ª', '3ª', etc., em futuras revisões.",
+        "group": "alteracoes" 
+      },
+      { 
+        "label": "Data", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:alteracao_data" },
+        "description": "Insira a data da alteração no formato DD/MM/AAAA.",
+        "group": "alteracoes" 
+      },
+      { 
+        "label": "Tipo de Alteração", 
+        "type": "String", 
+        "value":"Elaboração inicial",
+        "binding": { "type": "zeebe:property", "name": "pop:alteracao_tipo" },
+        "description": "Valor padrão para a primeira versão. Para revisões, altere para 'Atualização', 'Correção', etc.",
+        "group": "alteracoes" 
+      },
+      { 
+        "label": "Itens Revisados", 
+        "type": "String", 
+        "value": "Todos os itens", 
+        "binding": { "type": "zeebe:property", "name": "pop:alteracao_itens" },
+        "description": "Valor padrão para a primeira versão. Para revisões, especifique os itens alterados (separados por //).",
+        "group": "alteracoes" 
+      },
+      { 
+        "label": "Responsável pela Revisão", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:alteracao_responsavel" },
+        "description": "Insira o posto e nome do responsável pela revisão desta versão.",
+        "group": "alteracoes" 
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_dificuldades__" },
+        "description": "Aponte as Dificuldades e Riscos que podem impactar este processo. A seleção de Riscos Padrão do PEO não é obrigatória; utilize-a apenas se um dos itens da lista representar uma ameaça ou fraqueza relevante para a execução do processo.",
+        "disabled": true,
+        "choices": [
+          { "name": "X. DIFICULDADES DO PROCESSO (Riscos)", "value": "header_dificuldades" }
+        ],
+        "value": "header_dificuldades",
+        "group": "dificuldades"
+      },
+      {
+        "label": "Risco Padrão 1 (do PEO)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:riscoPadrao1" },
+        "choices": [
+          { "name": "Selecione apenas se aplicável", "value": "" },
+          { "name": "Am01 - Restrição orçamentária poderá impactar na capacidade de investimentos em PD&I", "value": "am01" },
+          { "name": "Am02 - Possibilidade de catástrofes ambientais, acidentais ou provocadas", "value": "am02" },
+          { "name": "Am03 - Defasagem de desenvolvimento tecnológico relativa aos países mais desenvolvidos", "value": "am03" },
+          { "name": "Am04 - Baixa atração de RH e ausência de captação de Servidores Civis", "value": "am04" },
+          { "name": "Am05 - Necessidades operacionais da MB (TRL 9) vs. capacidade das ICT (TRL 7)", "value": "am05" },
+          { "name": "PFr01 - Necessidade de atualização dos Processos", "value": "pfr01" },
+          { "name": "PFr02 - Substituição de RH na área de PD&I com perda de conhecimento", "value": "pfr02" },
+          { "name": "PFr03 - Manutenção física das instalações", "value": "pfr03" },
+          { "name": "PFr04 - Dificuldades locais (acesso a mercados para obtenção de materiais e serviços)", "value": "pfr04" }
+        ],
+        "value": "",
+        "group": "dificuldades"
+      },
+       {
+        "label": "Risco Padrão 2 (do PEO)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:riscoPadrao2" },
+        "choices": [
+          { "name": "Selecione apenas se aplicável", "value": "" },
+          { "name": "Am01 - Restrição orçamentária poderá impactar na capacidade de investimentos em PD&I", "value": "am01" },
+          { "name": "Am02 - Possibilidade de catástrofes ambientais, acidentais ou provocadas", "value": "am02" },
+          { "name": "Am03 - Defasagem de desenvolvimento tecnológico relativa aos países mais desenvolvidos", "value": "am03" },
+          { "name": "Am04 - Baixa atração de RH e ausência de captação de Servidores Civis", "value": "am04" },
+          { "name": "Am05 - Necessidades operacionais da MB (TRL 9) vs. capacidade das ICT (TRL 7)", "value": "am05" },
+          { "name": "PFr01 - Necessidade de atualização dos Processos", "value": "pfr01" },
+          { "name": "PFr02 - Substituição de RH na área de PD&I com perda de conhecimento", "value": "pfr02" },
+          { "name": "PFr03 - Manutenção física das instalações", "value": "pfr03" },
+          { "name": "PFr04 - Dificuldades locais (acesso a mercados para obtenção de materiais e serviços)", "value": "pfr04" }
+        ],
+        "value": "",
+        "group": "dificuldades"
+      },
+       {
+        "label": "Risco Padrão 3 (do PEO)",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:riscoPadrao3" },
+        "choices": [
+          { "name": "Selecione apenas se aplicável", "value": "" },
+          { "name": "Am01 - Restrição orçamentária poderá impactar na capacidade de investimentos em PD&I", "value": "am01" },
+          { "name": "Am02 - Possibilidade de catástrofes ambientais, acidentais ou provocadas", "value": "am02" },
+          { "name": "Am03 - Defasagem de desenvolvimento tecnológico relativa aos países mais desenvolvidos", "value": "am03" },
+          { "name": "Am04 - Baixa atração de RH e ausência de captação de Servidores Civis", "value": "am04" },
+          { "name": "Am05 - Necessidades operacionais da MB (TRL 9) vs. capacidade das ICT (TRL 7)", "value": "am05" },
+          { "name": "PFr01 - Necessidade de atualização dos Processos", "value": "pfr01" },
+          { "name": "PFr02 - Substituição de RH na área de PD&I com perda de conhecimento", "value": "pfr02" },
+          { "name": "PFr03 - Manutenção física das instalações", "value": "pfr03" },
+          { "name": "PFr04 - Dificuldades locais (acesso a mercados para obtenção de materiais e serviços)", "value": "pfr04" }
+        ],
+        "value": "",
+        "group": "dificuldades"
+      },
+      { "label": "Dificuldade/Risco Específico 1", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:riscoDigitado1" }, "group": "dificuldades" },
+      { "label": "Dificuldade/Risco Específico 2", "type": "String", "binding": { "type": "zeebe:property", "name": "pop:riscoDigitado2" }, "group": "dificuldades" },
+      { 
+        "label": "Dificuldade/Risco Específico 3 e Adicionais", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:riscoDigitado3_adicionais" }, 
+        "description": "Se precisar de mais, adicione aqui separando por //", 
+        "group": "dificuldades" 
+      },
+      {
+        "label": "",
+        "type": "Dropdown",
+        "binding": { "type": "zeebe:property", "name": "pop:__header_aprovacoes__" },
+        "description": "Insira os dados da aprovação para uso desta versão. As informações de Aprovador e Data também serão usadas no rodapé do documento.",
+        "disabled": true,
+        "choices": [
+          { "name": "XI. CONTROLE DE APROVAÇÕES / DADOS DO RODAPÉ", "value": "header_aprovacoes" }
+        ],
+        "value": "header_aprovacoes",
+        "group": "aprovacoes"
+      },
+      { 
+        "label": "Elaborado/Revisado por (para o rodapé)", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:rodape_elaborador" },
+        "description": "Este nome aparecerá no rodapé. Geralmente é o mesmo 'Responsável pela Revisão' da Seção IX.",
+        "group": "aprovacoes" 
+      },
+      { 
+        "label": "Data da Aprovação", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:aprovacao_data" },
+        "description": "Insira a data no formato DD/MM/AAAA. Será usada na tabela e no rodapé.",
+        "group": "aprovacoes" 
+      },
+      { 
+        "label": "Posto e Nome Completo do Aprovador", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:aprovacao_responsavel" },
+        "description": "Será usado na tabela e no rodapé.",
+        "group": "aprovacoes" 
+      },
+      { 
+        "label": "Setor Aprovador (para a tabela)", 
+        "type": "String", 
+        "binding": { "type": "zeebe:property", "name": "pop:aprovacao_setor" },
+        "group": "aprovacoes" 
+      }
+    ],
+    "layout": {
+      "groups": [
+        { "label": "DADOS DE CABEÇALHO", "id": "cabecalho" },
+        { "label": "ALINHAMENTO ESTRATÉGICO", "id": "estrategico" },
+        { "label": "I. PALAVRAS-CHAVE", "id": "palavrasChave" },
+        { "label": "II. DICIONÁRIO DE TERMOS E SIGLAS", "id": "dicionario" },
+        { "label": "III. DESCRIÇÃO DO PROCESSO", "id": "descricao" },
+        { "label": "IV. DOCUMENTOS DE REFERÊNCIA", "id": "referencias" },
+        { "label": "V. SISTEMAS E FORMULÁRIOS UTILIZADOS", "id": "sistemas" },
+        { "label": "VI. INDICADORES DE MONITORAMENTO", "id": "monitoramento" },
+        { "label": "VII. OBSERVAÇÕES SOBRE ATIVIDADES DO PROCESSO", "id": "observacoes" },
+        { "label": "VIII. FLUXOGRAMA", "id": "fluxograma" },
+        { "label": "IX. CONTROLE DAS ALTERAÇÕES", "id": "alteracoes" },
+        { "label": "X. DIFICULDADES DO PROCESSO", "id": "dificuldades" },
+        { "label": "XI. CONTROLE DE APROVAÇÕES PARA USO / DADOS DO RODAPÉ", "id": "aprovacoes" }
+      ]
+    }
+  }
+]

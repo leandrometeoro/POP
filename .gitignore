@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# macOS / editores
+.DS_Store
+.vscode/
+.idea/
+
+# Áreas internas / artefatos gerados (não versionar)
+.work/
+inbox/
+contexts/
+logs/
+odt/
+pdf/
+tmp/
+archive/
+
+# Arquivos temporários
+*.swp
